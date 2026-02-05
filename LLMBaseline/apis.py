@@ -28,7 +28,8 @@ def invoke_llm_api(model_name, content):
     elif model_name == "deepseek-chat":
         prediction = invoke_deepseek_api(content)
     elif model_name == "qwen-7b":
-        prediction = invoke_qwen_api(model_name="qwen2.5-7b-instruct", content=content)
+        #prediction = invoke_qwen_api(model_name="qwen2.5-7b-instruct", content=content)
+        prediction = invoke_opensource_llm(model_name=model_name, content=content)
     elif model_name in ["mistral-7b", "llama-8b"]:
         prediction = invoke_opensource_llm(model_name, content=content)
     else:
@@ -110,7 +111,7 @@ def invoke_opensource_llm(model_name, content):
     url = f"http://127.0.0.1:8008/v1/chat/completions"
 
     model_mapping = {
-        "qwen-7b": "Qwen2.5-7B-Instruct",
+        "qwen-7b": "Qwen/Qwen2.5-7B-Instruct",
         "mistral-7b": "Mistral-7B-Instruct-v0.2", 
         "llama-8b": "Llama-3.1-8B-Instruct"
     }
@@ -132,8 +133,11 @@ def invoke_opensource_llm(model_name, content):
         "stop": None
     })
     
-    response = requests.post(url, headers=headers, data=payload, timeout=500)
-    
+    # Bypass HTTP_PROXY for localhost so Squid doesn't intercept (503 / "URL could not be retrieved")
+    response = requests.post(
+        url, headers=headers, data=payload, timeout=500,
+        proxies={"http": None, "https": None},
+    )
     resp = response.json()
     prediction = resp["choices"][0]["message"]["content"]
-    return  prediction
+    return prediction

@@ -3,8 +3,8 @@ from langchain_community.vectorstores import FAISS
 import json
 import argparse
 from tqdm import tqdm
-from langchain_community.embeddings import DashScopeEmbeddings
-from langchain.prompts import ChatPromptTemplate
+from langchain_community.embeddings import DashScopeEmbeddings, HuggingFaceEmbeddings
+from langchain_core.prompts import ChatPromptTemplate
 from apis import invoke_llm_api
 import time
 
@@ -15,8 +15,17 @@ def retrieve_context(query, index_folder, top_k=5, max_length=1600):
         return "" 
     
     # TODO: Set your DashScope API key here
-    embeddings = DashScopeEmbeddings(model="text-embedding-v1", 
-                                     dashscope_api_key="YOUR Key HERE")
+    # embeddings = DashScopeEmbeddings(model="text-embedding-v1", 
+    #                                  dashscope_api_key="YOUR Key HERE")
+    model_name = "Alibaba-NLP/gte-large-en-v1.5" # Example model (see recommendations below)
+    model_kwargs = {'device': 'cuda', 'trust_remote_code': True} # Forces the model to run on GPU
+    encode_kwargs = {'normalize_embeddings': True} # Often recommended for cosine similarity
+    
+    embeddings = HuggingFaceEmbeddings(
+        model_name=model_name,
+        model_kwargs=model_kwargs,
+        encode_kwargs=encode_kwargs,
+    )
     faiss_index = FAISS.load_local(index_folder, embeddings, allow_dangerous_deserialization=True)
 
     searched_docs = faiss_index.similarity_search(query, k=top_k)

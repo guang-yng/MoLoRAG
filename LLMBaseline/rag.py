@@ -4,7 +4,7 @@ from utils import prepare_files, get_cur_time
 from langchain_community.document_loaders import PyPDFLoader, UnstructuredFileLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import DashScopeEmbeddings
+from langchain_community.embeddings import DashScopeEmbeddings, HuggingFaceEmbeddings 
 import os 
 from tqdm import tqdm
 import argparse 
@@ -27,8 +27,17 @@ def index_single_pdf(filepath, doc_id, default_parser=True):
 
     # Step 3 - Index the chunks 
     # TODO: Set your DashScope API key here
-    embeddings = DashScopeEmbeddings(model="text-embedding-v1", 
-                                     dashscope_api_key="YOUR Key HERE",)
+    # embeddings = DashScopeEmbeddings(model="text-embedding-v1", 
+    #                                  dashscope_api_key="YOUR Key HERE",)
+    model_name = "Alibaba-NLP/gte-large-en-v1.5" # Example model (see recommendations below)
+    model_kwargs = {'device': 'cuda', 'trust_remote_code': True} # Forces the model to run on GPU
+    encode_kwargs = {'normalize_embeddings': True} # Often recommended for cosine similarity
+    
+    embeddings = HuggingFaceEmbeddings(
+        model_name=model_name,
+        model_kwargs=model_kwargs,
+        encode_kwargs=encode_kwargs,
+    )
     cur_savepath = f"{save_dir}/{doc_id}"
 
     faiss_index = FAISS.from_documents(chunks, embeddings)
