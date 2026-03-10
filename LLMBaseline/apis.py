@@ -5,7 +5,7 @@ from openai import OpenAI
 
 OPENAI_CONFIG = {
     "MODEL": "gpt-4o-mini",
-    "ENDPOINT": "https://api.deerapi.com/v1/chat/completions",
+    "ENDPOINT": "https://api.openai.com/v1/chat/completions",
     "API_KEY": "",
 }
 
